@@ -1,11 +1,12 @@
-// app/s/[token]/page.tsx — v1.1 (Jun 2026)
+// app/s/[token]/page.tsx — v1.2 (Jun 2026)
 // Public shared memory page.
 //
-// v1.0 → v1.1:
-// • CTA now says “Open Memory Temple”.
-// • Android opens the app via intent link when installed.
-// • Android falls back to the Play Store when not installed.
-// • Desktop/iOS fall back to Illimitable AI for now.
+// v1.1 → v1.2:
+// • Moves app/store opening logic into client button.
+// • Keeps page as a server component.
+// • CTA opens Memory Temple smartly via OpenMemoryTempleButton.
+
+import { OpenMemoryTempleButton } from './OpenMemoryTempleButton';
 
 type PageProps = {
   params: Promise<{
@@ -22,11 +23,6 @@ type SharedAsset = {
   width: number | null;
   height: number | null;
 };
-
-const PLAY_STORE_URL =
-  'https://play.google.com/store/apps/details?id=ai.illimitable.memorytemple';
-
-const FALLBACK_URL = 'https://illimitableai.com';
 
 async function getSharedMemory(token: string) {
   const res = await fetch(
@@ -46,20 +42,6 @@ function formatDate(value?: string | null) {
     month: 'long',
     year: 'numeric',
   }).format(new Date(value));
-}
-
-function buildOpenMemoryTempleUrl(memoryId?: string | null) {
-  const cleanMemoryId = String(memoryId ?? '').trim();
-
-  if (!cleanMemoryId) {
-    return FALLBACK_URL;
-  }
-
-  return `intent://memory/${encodeURIComponent(
-    cleanMemoryId,
-  )}#Intent;scheme=limiapp;package=ai.illimitable.memorytemple;S.browser_fallback_url=${encodeURIComponent(
-    PLAY_STORE_URL,
-  )};end`;
 }
 
 export default async function SharedMemoryPage({ params }: PageProps) {
@@ -85,7 +67,6 @@ export default async function SharedMemoryPage({ params }: PageProps) {
   const title = data.share?.title || data.memory?.title || 'Shared memory';
   const story = data.share?.description || data.memory?.body || '';
   const date = formatDate(data.memory?.createdAt);
-  const openMemoryTempleUrl = buildOpenMemoryTempleUrl(data.memory?.id);
 
   return (
     <main style={styles.page}>
@@ -96,17 +77,13 @@ export default async function SharedMemoryPage({ params }: PageProps) {
             <p style={styles.byline}>Shared from Memory Temple</p>
           </div>
 
-          <a style={styles.openButton} href={openMemoryTempleUrl}>
-            Open Memory Temple
-          </a>
+          <OpenMemoryTempleButton memoryId={data.memory?.id} />
         </header>
 
         <article style={styles.card}>
           <div style={styles.storyBlock}>
             {date ? <p style={styles.date}>{date}</p> : null}
-
             <h1 style={styles.title}>{title}</h1>
-
             {story ? <p style={styles.story}>{story}</p> : null}
           </div>
 
@@ -168,16 +145,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 13,
     color: '#6B7280',
     fontWeight: 700,
-  },
-  openButton: {
-    textDecoration: 'none',
-    background: '#7C5CE8',
-    color: '#FFFFFF',
-    borderRadius: 999,
-    padding: '11px 15px',
-    fontSize: 13,
-    fontWeight: 900,
-    whiteSpace: 'nowrap',
   },
   card: {
     background: 'rgba(255,255,255,0.86)',
