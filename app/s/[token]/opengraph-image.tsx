@@ -1,5 +1,11 @@
-// app/s/[token]/opengraph-image.tsx — v1.0 (Jun 2026)
+// app/s/[token]/opengraph-image.tsx — v1.1 (Jun 2026)
 // Dynamic social preview image for shared memories.
+//
+// v1.0 → v1.1:
+// • Safer image picking: url, thumbUrl, coverImage all supported.
+// • Safer fallback when token is invalid.
+// • Removes unsupported symbol rendering issue.
+// • Keeps output as 1200x630 PNG for social previews.
 
 import { ImageResponse } from 'next/og';
 
@@ -18,6 +24,13 @@ type Props = {
   }>;
 };
 
+type SharedAsset = {
+  id?: string;
+  kind?: 'photo' | 'video' | string;
+  url?: string | null;
+  thumbUrl?: string | null;
+};
+
 async function getSharedMemory(token: string) {
   const res = await fetch(
     `https://wuiqgeqxgsalnuzfaekz.supabase.co/functions/v1/public-memory-share?token=${encodeURIComponent(token)}`,
@@ -28,22 +41,51 @@ async function getSharedMemory(token: string) {
   return res.json();
 }
 
+function cleanText(value: unknown, fallback: string) {
+  const text = String(value ?? '').trim();
+  return text || fallback;
+}
+
+function truncate(value: string, max: number) {
+  if (value.length <= max) return value;
+  return `${value.slice(0, max - 1).trim()}…`;
+}
+
+function getPreviewImage(data: any) {
+  const assets = ((data?.assets ?? []) as SharedAsset[]).filter(
+    (asset) => asset.url || asset.thumbUrl,
+  );
+
+  const firstPhoto = assets.find((asset) => asset.kind === 'photo');
+  const firstAsset = firstPhoto ?? assets[0] ?? null;
+
+  return (
+    firstAsset?.url ||
+    firstAsset?.thumbUrl ||
+    data?.coverImage ||
+    data?.shareCardImage ||
+    null
+  );
+}
+
 export default async function OpenGraphImage({ params }: Props) {
   const { token } = await params;
   const data = await getSharedMemory(token);
 
-  const title = data?.share?.title || data?.memory?.title || 'Shared memory';
-  const description =
-    data?.share?.description ||
-    data?.memory?.body ||
-    'A private memory shared from Memory Temple.';
+  const title = truncate(
+    cleanText(data?.share?.title || data?.memory?.title, 'Shared memory'),
+    68,
+  );
 
-  const image =
-    data?.assets?.find((asset: any) => asset?.kind === 'photo' && (asset?.url || asset?.thumbUrl))
-      ?.url ||
-    data?.assets?.find((asset: any) => asset?.url || asset?.thumbUrl)?.url ||
-    data?.coverImage ||
-    null;
+  const description = truncate(
+    cleanText(
+      data?.share?.description || data?.memory?.body,
+      'A private memory shared from Memory Temple.',
+    ),
+    110,
+  );
+
+  const image = data?.ok ? getPreviewImage(data) : null;
 
   return new ImageResponse(
     (
@@ -65,7 +107,6 @@ export default async function OpenGraphImage({ params }: Props) {
             borderRadius: 42,
             overflow: 'hidden',
             background: '#FFFFFF',
-            boxShadow: '0 24px 80px rgba(51,35,102,0.18)',
           }}
         >
           {image ? (
@@ -98,7 +139,7 @@ export default async function OpenGraphImage({ params }: Props) {
                   marginBottom: 34,
                 }}
               >
-                ✦ Limi
+                Limi
               </div>
 
               <div

@@ -1,10 +1,10 @@
-// app/s/[token]/page.tsx — v1.3 (Jun 2026)
+// app/s/[token]/page.tsx — v1.4 (Jun 2026)
 // Public shared memory page.
 //
-// v1.2 → v1.3:
-// • Adds dynamic Open Graph metadata for Messenger / WhatsApp / social previews.
-// • Adds Twitter card metadata.
-// • Uses the first shared image as the preview image when available.
+// v1.3 → v1.4:
+// • Adds explicit OG image width / height / type for WhatsApp.
+// • Uses stable generated OG image route for all social previews.
+// • Removes unused firstPreviewImage helper.
 // • Keeps page as a server component with client CTA button.
 
 import type { Metadata } from 'next';
@@ -52,17 +52,6 @@ function cleanText(value: unknown, fallback = '') {
   return text || fallback;
 }
 
-function firstPreviewImage(data: any) {
-  const assets = ((data?.assets ?? []) as SharedAsset[]).filter(
-    (asset) => asset.url || asset.thumbUrl,
-  );
-
-  const firstPhoto = assets.find((asset) => asset.kind === 'photo');
-  const firstAsset = firstPhoto ?? assets[0] ?? null;
-
-  return firstAsset?.url || firstAsset?.thumbUrl || data?.coverImage || null;
-}
-
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { token } = await params;
   const data = await getSharedMemory(token);
@@ -83,8 +72,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     data.share?.description || data.memory?.body,
     'A private memory shared from Memory Temple.',
   );
-  const image = `https://share.illimitableai.com/s/${encodeURIComponent(token)}/opengraph-image`;
+
   const url = `https://share.illimitableai.com/s/${encodeURIComponent(token)}`;
+  const imageUrl = `${url}/opengraph-image`;
 
   return {
     title: `${title} | Memory Temple`,
@@ -98,20 +88,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       url,
       siteName: 'Memory Temple',
       type: 'article',
-      images: image
-        ? [
-            {
-              url: image,
-              alt: title,
-            },
-          ]
-        : undefined,
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: title,
+          type: 'image/png',
+        },
+      ],
     },
     twitter: {
-      card: image ? 'summary_large_image' : 'summary',
+      card: 'summary_large_image',
       title,
       description,
-      images: image ? [image] : undefined,
+      images: [imageUrl],
     },
     robots: {
       index: false,
