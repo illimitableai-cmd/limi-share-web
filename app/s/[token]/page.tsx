@@ -83,7 +83,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     data.share?.description || data.memory?.body,
     'A private memory shared from Memory Temple.',
   );
-  const image = firstPreviewImage(data);
+  const image = `https://share.illimitableai.com/s/${encodeURIComponent(token)}/opengraph-image`;
   const url = `https://share.illimitableai.com/s/${encodeURIComponent(token)}`;
 
   return {
