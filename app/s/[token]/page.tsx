@@ -1,10 +1,13 @@
-// app/s/[token]/page.tsx — v1.2 (Jun 2026)
+// app/s/[token]/page.tsx — v1.3 (Jun 2026)
 // Public shared memory page.
 //
-// v1.1 → v1.2:
-// • Moves app/store opening logic into client button.
-// • Keeps page as a server component.
-// • CTA opens Memory Temple smartly via OpenMemoryTempleButton.
+// v1.2 → v1.3:
+// • Adds dynamic Open Graph metadata for Messenger / WhatsApp / social previews.
+// • Adds Twitter card metadata.
+// • Uses the first shared image as the preview image when available.
+// • Keeps page as a server component with client CTA button.
+
+import type { Metadata } from 'next';
 
 import { OpenMemoryTempleButton } from './OpenMemoryTempleButton';
 
@@ -42,6 +45,79 @@ function formatDate(value?: string | null) {
     month: 'long',
     year: 'numeric',
   }).format(new Date(value));
+}
+
+function cleanText(value: unknown, fallback = '') {
+  const text = String(value ?? '').trim();
+  return text || fallback;
+}
+
+function firstPreviewImage(data: any) {
+  const assets = ((data?.assets ?? []) as SharedAsset[]).filter(
+    (asset) => asset.url || asset.thumbUrl,
+  );
+
+  const firstPhoto = assets.find((asset) => asset.kind === 'photo');
+  const firstAsset = firstPhoto ?? assets[0] ?? null;
+
+  return firstAsset?.url || firstAsset?.thumbUrl || data?.coverImage || null;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { token } = await params;
+  const data = await getSharedMemory(token);
+
+  if (!data?.ok) {
+    return {
+      title: 'Memory unavailable | Memory Temple',
+      description: 'This shared memory may have expired or been disabled.',
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+
+  const title = cleanText(data.share?.title || data.memory?.title, 'Shared memory');
+  const description = cleanText(
+    data.share?.description || data.memory?.body,
+    'A private memory shared from Memory Temple.',
+  );
+  const image = firstPreviewImage(data);
+  const url = `https://share.illimitableai.com/s/${encodeURIComponent(token)}`;
+
+  return {
+    title: `${title} | Memory Temple`,
+    description,
+    alternates: {
+      canonical: url,
+    },
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: 'Memory Temple',
+      type: 'article',
+      images: image
+        ? [
+            {
+              url: image,
+              alt: title,
+            },
+          ]
+        : undefined,
+    },
+    twitter: {
+      card: image ? 'summary_large_image' : 'summary',
+      title,
+      description,
+      images: image ? [image] : undefined,
+    },
+    robots: {
+      index: false,
+      follow: false,
+    },
+  };
 }
 
 export default async function SharedMemoryPage({ params }: PageProps) {
