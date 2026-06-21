@@ -1,3 +1,12 @@
+// app/s/[token]/page.tsx — v1.1 (Jun 2026)
+// Public shared memory page.
+//
+// v1.0 → v1.1:
+// • CTA now says “Open Memory Temple”.
+// • Android opens the app via intent link when installed.
+// • Android falls back to the Play Store when not installed.
+// • Desktop/iOS fall back to Illimitable AI for now.
+
 type PageProps = {
   params: Promise<{
     token: string;
@@ -13,6 +22,11 @@ type SharedAsset = {
   width: number | null;
   height: number | null;
 };
+
+const PLAY_STORE_URL =
+  'https://play.google.com/store/apps/details?id=ai.illimitable.memorytemple';
+
+const FALLBACK_URL = 'https://illimitableai.com';
 
 async function getSharedMemory(token: string) {
   const res = await fetch(
@@ -32,6 +46,20 @@ function formatDate(value?: string | null) {
     month: 'long',
     year: 'numeric',
   }).format(new Date(value));
+}
+
+function buildOpenMemoryTempleUrl(memoryId?: string | null) {
+  const cleanMemoryId = String(memoryId ?? '').trim();
+
+  if (!cleanMemoryId) {
+    return FALLBACK_URL;
+  }
+
+  return `intent://memory/${encodeURIComponent(
+    cleanMemoryId,
+  )}#Intent;scheme=limiapp;package=ai.illimitable.memorytemple;S.browser_fallback_url=${encodeURIComponent(
+    PLAY_STORE_URL,
+  )};end`;
 }
 
 export default async function SharedMemoryPage({ params }: PageProps) {
@@ -57,6 +85,7 @@ export default async function SharedMemoryPage({ params }: PageProps) {
   const title = data.share?.title || data.memory?.title || 'Shared memory';
   const story = data.share?.description || data.memory?.body || '';
   const date = formatDate(data.memory?.createdAt);
+  const openMemoryTempleUrl = buildOpenMemoryTempleUrl(data.memory?.id);
 
   return (
     <main style={styles.page}>
@@ -67,8 +96,8 @@ export default async function SharedMemoryPage({ params }: PageProps) {
             <p style={styles.byline}>Shared from Memory Temple</p>
           </div>
 
-          <a style={styles.openButton} href="https://illimitableai.com">
-            Open in Limi
+          <a style={styles.openButton} href={openMemoryTempleUrl}>
+            Open Memory Temple
           </a>
         </header>
 
@@ -84,7 +113,7 @@ export default async function SharedMemoryPage({ params }: PageProps) {
           {assets.length ? (
             <div style={styles.gallery}>
               {assets.map((asset) => {
-                const src = asset.thumbUrl || asset.url || '';
+                const src = asset.url || asset.thumbUrl || '';
 
                 return (
                   <figure key={asset.id} style={styles.mediaFrame}>
