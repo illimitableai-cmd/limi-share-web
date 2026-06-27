@@ -1,20 +1,19 @@
-// app/s/[token]/opengraph-image.tsx — v1.3 (Jun 2026)
-// Premium social preview image for shared memories.
+// app/s/[token]/opengraph-image.tsx — v1.4 (Jun 2026)
+// Lightweight premium social preview image for shared memories.
 //
-// v1.2 → v1.3:
-// • VISUAL: simpler, more clickable memory-card layout.
-// • VISUAL: stronger photo-first design when media exists.
-// • VISUAL: cleaner text-only fallback for memories without media.
-// • COPY: uses “Private memory shared with you”.
-// • KEEP: stable 1200x630 PNG output for WhatsApp/Messenger previews.
+// v1.3 → v1.4:
+// • PERF: scales full design down to 800x420 for WhatsApp reliability.
+// • FIX: internal layout now matches 800x420 canvas.
+// • VISUAL: keeps photo-first card but avoids oversized/cropped render.
+// • KEEP: polished text-only fallback and stable PNG output.
 
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
 
 export const size = {
-  width: 1200,
-  height: 630,
+  width: 800,
+  height: 420,
 };
 
 export const contentType = 'image/png';
@@ -89,7 +88,7 @@ export default async function OpenGraphImage({ params }: Props) {
 
   const title = truncate(
     cleanText(data?.share?.title || data?.memory?.title, 'Shared memory'),
-    56,
+    48,
   );
 
   const description = truncate(
@@ -97,7 +96,7 @@ export default async function OpenGraphImage({ params }: Props) {
       data?.share?.description || data?.memory?.body,
       'A private memory shared from Memory Temple.',
     ),
-    112,
+    90,
   );
 
   const date = formatDate(data?.memory?.createdAt);
@@ -112,7 +111,7 @@ export default async function OpenGraphImage({ params }: Props) {
             height: '100%',
             display: 'flex',
             background: '#F4F0FF',
-            padding: 44,
+            padding: 28,
             fontFamily: 'Arial',
           }}
         >
@@ -123,9 +122,9 @@ export default async function OpenGraphImage({ params }: Props) {
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
-              borderRadius: 46,
+              borderRadius: 30,
               background: '#FFFFFF',
-              padding: 58,
+              padding: 36,
             }}
           >
             <div
@@ -138,7 +137,7 @@ export default async function OpenGraphImage({ params }: Props) {
               <div
                 style={{
                   display: 'flex',
-                  fontSize: 28,
+                  fontSize: 20,
                   fontWeight: 900,
                   color: '#7C5CE8',
                 }}
@@ -150,12 +149,12 @@ export default async function OpenGraphImage({ params }: Props) {
                 <div
                   style={{
                     display: 'flex',
-                    fontSize: 23,
+                    fontSize: 16,
                     fontWeight: 900,
                     color: '#7C5CE8',
                     background: '#F3EEFF',
                     borderRadius: 999,
-                    padding: '12px 20px',
+                    padding: '8px 14px',
                   }}
                 >
                   {date}
@@ -167,12 +166,12 @@ export default async function OpenGraphImage({ params }: Props) {
               <div
                 style={{
                   display: 'flex',
-                  fontSize: 84,
+                  fontSize: 52,
                   fontWeight: 900,
-                  lineHeight: 0.92,
-                  letterSpacing: -4,
+                  lineHeight: 0.94,
+                  letterSpacing: -2.5,
                   color: '#101525',
-                  marginBottom: 30,
+                  marginBottom: 18,
                 }}
               >
                 {title}
@@ -181,11 +180,11 @@ export default async function OpenGraphImage({ params }: Props) {
               <div
                 style={{
                   display: 'flex',
-                  fontSize: 35,
+                  fontSize: 22,
                   fontWeight: 700,
                   lineHeight: 1.24,
                   color: '#4B5563',
-                  maxWidth: 940,
+                  maxWidth: 650,
                 }}
               >
                 {description}
@@ -195,7 +194,7 @@ export default async function OpenGraphImage({ params }: Props) {
             <div
               style={{
                 display: 'flex',
-                fontSize: 25,
+                fontSize: 17,
                 fontWeight: 900,
                 color: '#101525',
               }}
@@ -217,7 +216,7 @@ export default async function OpenGraphImage({ params }: Props) {
           height: '100%',
           display: 'flex',
           background: '#F4F0FF',
-          padding: 34,
+          padding: 22,
           fontFamily: 'Arial',
         }}
       >
@@ -226,14 +225,14 @@ export default async function OpenGraphImage({ params }: Props) {
             width: '100%',
             height: '100%',
             display: 'flex',
-            borderRadius: 46,
+            borderRadius: 30,
             overflow: 'hidden',
             background: '#FFFFFF',
           }}
         >
           <div
             style={{
-              width: 680,
+              width: 445,
               height: '100%',
               display: 'flex',
               position: 'relative',
@@ -254,14 +253,14 @@ export default async function OpenGraphImage({ params }: Props) {
             <div
               style={{
                 position: 'absolute',
-                left: 28,
-                top: 28,
+                left: 18,
+                top: 18,
                 display: 'flex',
                 borderRadius: 999,
-                padding: '13px 20px',
+                padding: '8px 14px',
                 background: 'rgba(255,255,255,0.92)',
                 color: '#7C5CE8',
-                fontSize: 23,
+                fontSize: 16,
                 fontWeight: 900,
               }}
             >
@@ -275,7 +274,7 @@ export default async function OpenGraphImage({ params }: Props) {
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
-              padding: '46px 48px',
+              padding: '30px 32px',
             }}
           >
             {date ? (
@@ -284,10 +283,10 @@ export default async function OpenGraphImage({ params }: Props) {
                   display: 'flex',
                   alignSelf: 'flex-start',
                   borderRadius: 999,
-                  padding: '12px 19px',
+                  padding: '8px 13px',
                   background: '#F3EEFF',
                   color: '#7C5CE8',
-                  fontSize: 22,
+                  fontSize: 15,
                   fontWeight: 900,
                 }}
               >
@@ -301,12 +300,12 @@ export default async function OpenGraphImage({ params }: Props) {
               <div
                 style={{
                   display: 'flex',
-                  fontSize: 66,
+                  fontSize: 42,
                   fontWeight: 900,
                   lineHeight: 0.94,
-                  letterSpacing: -3,
+                  letterSpacing: -2,
                   color: '#101525',
-                  marginBottom: 22,
+                  marginBottom: 14,
                 }}
               >
                 {title}
@@ -315,7 +314,7 @@ export default async function OpenGraphImage({ params }: Props) {
               <div
                 style={{
                   display: 'flex',
-                  fontSize: 29,
+                  fontSize: 19,
                   fontWeight: 700,
                   lineHeight: 1.25,
                   color: '#4B5563',
@@ -328,7 +327,7 @@ export default async function OpenGraphImage({ params }: Props) {
             <div
               style={{
                 display: 'flex',
-                fontSize: 23,
+                fontSize: 16,
                 fontWeight: 900,
                 color: '#101525',
               }}
