@@ -1,11 +1,12 @@
-// app/s/[token]/opengraph-image.tsx — v1.4 (Jun 2026)
-// Lightweight premium social preview image for shared memories.
+// app/s/[token]/opengraph-image.tsx — v1.5 (Jun 2026)
+// Tap-first social preview image for shared memories.
 //
-// v1.3 → v1.4:
-// • PERF: scales full design down to 800x420 for WhatsApp reliability.
-// • FIX: internal layout now matches 800x420 canvas.
-// • VISUAL: keeps photo-first card but avoids oversized/cropped render.
-// • KEEP: polished text-only fallback and stable PNG output.
+// v1.4 → v1.5:
+// • VISUAL: moves to large photo-led memory card.
+// • VISUAL: overlays title on a soft dark gradient for stronger tap appeal.
+// • VISUAL: reduces white panel weight and makes the image feel emotional first.
+// • FALLBACK: keeps clean premium text-only card for memories without media.
+// • KEEP: lightweight 800x420 PNG output for WhatsApp reliability.
 
 import { ImageResponse } from 'next/og';
 
@@ -96,7 +97,7 @@ export default async function OpenGraphImage({ params }: Props) {
       data?.share?.description || data?.memory?.body,
       'A private memory shared from Memory Temple.',
     ),
-    90,
+    82,
   );
 
   const date = formatDate(data?.memory?.createdAt);
@@ -122,9 +123,9 @@ export default async function OpenGraphImage({ params }: Props) {
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
-              borderRadius: 30,
+              borderRadius: 32,
               background: '#FFFFFF',
-              padding: 36,
+              padding: 38,
             }}
           >
             <div
@@ -169,7 +170,7 @@ export default async function OpenGraphImage({ params }: Props) {
                   fontSize: 52,
                   fontWeight: 900,
                   lineHeight: 0.94,
-                  letterSpacing: -2.5,
+                  letterSpacing: -2.4,
                   color: '#101525',
                   marginBottom: 18,
                 }}
@@ -184,7 +185,7 @@ export default async function OpenGraphImage({ params }: Props) {
                   fontWeight: 700,
                   lineHeight: 1.24,
                   color: '#4B5563',
-                  maxWidth: 650,
+                  maxWidth: 660,
                 }}
               >
                 {description}
@@ -216,7 +217,7 @@ export default async function OpenGraphImage({ params }: Props) {
           height: '100%',
           display: 'flex',
           background: '#F4F0FF',
-          padding: 22,
+          padding: 20,
           fontFamily: 'Arial',
         }}
       >
@@ -225,111 +226,117 @@ export default async function OpenGraphImage({ params }: Props) {
             width: '100%',
             height: '100%',
             display: 'flex',
-            borderRadius: 30,
+            position: 'relative',
+            borderRadius: 32,
             overflow: 'hidden',
-            background: '#FFFFFF',
+            background: '#111827',
           }}
         >
+          <img
+            src={image}
+            alt=""
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+            }}
+          />
+
           <div
             style={{
-              width: 445,
-              height: '100%',
+              position: 'absolute',
+              inset: 0,
               display: 'flex',
-              position: 'relative',
-              overflow: 'hidden',
-              background: '#EDE9F7',
+              background:
+                'linear-gradient(180deg, rgba(5,8,18,0.08) 0%, rgba(5,8,18,0.15) 34%, rgba(5,8,18,0.82) 100%)',
+            }}
+          />
+
+          <div
+            style={{
+              position: 'absolute',
+              left: 24,
+              top: 22,
+              display: 'flex',
+              alignItems: 'center',
+              borderRadius: 999,
+              padding: '8px 14px',
+              background: 'rgba(255,255,255,0.92)',
+              color: '#7C5CE8',
+              fontSize: 16,
+              fontWeight: 900,
             }}
           >
-            <img
-              src={image}
-              alt=""
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-              }}
-            />
+            Memory Temple
+          </div>
 
+          {date ? (
             <div
               style={{
                 position: 'absolute',
-                left: 18,
-                top: 18,
+                right: 24,
+                top: 22,
                 display: 'flex',
+                alignItems: 'center',
                 borderRadius: 999,
                 padding: '8px 14px',
                 background: 'rgba(255,255,255,0.92)',
-                color: '#7C5CE8',
-                fontSize: 16,
+                color: '#101525',
+                fontSize: 15,
                 fontWeight: 900,
               }}
             >
-              Memory Temple
+              {date}
             </div>
-          </div>
+          ) : null}
 
           <div
             style={{
-              flex: 1,
+              position: 'absolute',
+              left: 34,
+              right: 34,
+              bottom: 30,
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'space-between',
-              padding: '30px 32px',
             }}
           >
-            {date ? (
-              <div
-                style={{
-                  display: 'flex',
-                  alignSelf: 'flex-start',
-                  borderRadius: 999,
-                  padding: '8px 13px',
-                  background: '#F3EEFF',
-                  color: '#7C5CE8',
-                  fontSize: 15,
-                  fontWeight: 900,
-                }}
-              >
-                {date}
-              </div>
-            ) : (
-              <div />
-            )}
-
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  fontSize: 42,
-                  fontWeight: 900,
-                  lineHeight: 0.94,
-                  letterSpacing: -2,
-                  color: '#101525',
-                  marginBottom: 14,
-                }}
-              >
-                {title}
-              </div>
-
-              <div
-                style={{
-                  display: 'flex',
-                  fontSize: 19,
-                  fontWeight: 700,
-                  lineHeight: 1.25,
-                  color: '#4B5563',
-                }}
-              >
-                {description}
-              </div>
+            <div
+              style={{
+                display: 'flex',
+                fontSize: 56,
+                fontWeight: 900,
+                lineHeight: 0.94,
+                letterSpacing: -2.4,
+                color: '#FFFFFF',
+                marginBottom: 12,
+                textShadow: '0 2px 16px rgba(0,0,0,0.35)',
+              }}
+            >
+              {title}
             </div>
 
             <div
               style={{
                 display: 'flex',
+                fontSize: 22,
+                fontWeight: 750,
+                lineHeight: 1.22,
+                color: 'rgba(255,255,255,0.9)',
+                maxWidth: 690,
+                textShadow: '0 2px 12px rgba(0,0,0,0.36)',
+              }}
+            >
+              {description}
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+                marginTop: 16,
                 fontSize: 16,
                 fontWeight: 900,
-                color: '#101525',
+                color: '#FFFFFF',
+                opacity: 0.96,
               }}
             >
               Private memory shared with you
